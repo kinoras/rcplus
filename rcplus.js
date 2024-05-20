@@ -1,12 +1,13 @@
 /*
- * banner_warn plugin
+ * rcplus plugin
  * @author pulsejet
  */
 
-var banner_warn = {
-    insertrow: function(evt) {
+var rcplus = {
+    insertrow: function (evt) {
         // Check if we have the required data
-        if (!rcmail.env.banner_avatar || !rcmail.env.banner_avatar[evt.uid]) return;
+        if (!rcmail.env.banner_avatar || !rcmail.env.banner_avatar[evt.uid])
+            return;
 
         // Get object
         const obj = rcmail.env.banner_avatar[evt.uid];
@@ -16,8 +17,8 @@ var banner_warn = {
         const calert = obj.alert ? 'alert ' : '';
 
         // Get image avatar
-        const showImages = rcmail.env.banner_avatar_images;
-        const image = (warn || calert || !showImages) ? '' : './?_task=addressbook&_action=photo&_email=' + obj.from + '&_error=1';
+        const showImages = rcmail.env.banner_showAvatar;
+        const image = (warn || calert || !showImages) ? '' : './?_task=addressbook&_action=photo&_email=' + obj.from + '&_source=0';
 
         // Add column of avatar
         $('td.subject', evt.row.obj).before(
@@ -48,18 +49,18 @@ var banner_warn = {
     }
 };
 
-window.rcmail && rcmail.addEventListener('init', function(evt) {
-        if (rcmail.gui_objects.messagelist) {
-            rcmail.addEventListener('insertrow', banner_warn.insertrow);
+window.rcmail && rcmail.addEventListener('init', function (evt) {
+    if (rcmail.gui_objects.messagelist) {
+        rcmail.addEventListener('insertrow', rcplus.insertrow);
 
-            const _hrow = rcmail.message_list.highlight_row.bind(rcmail.message_list);
-            rcmail.message_list.highlight_row = function(...args) {
-                if (args[1]) {
-                    $(rcmail.message_list.tbody).addClass('multiselect');
-                } else {
-                    $(rcmail.message_list.tbody).removeClass('multiselect');
-                }
-                _hrow(...args);
+        const _hrow = rcmail.message_list.highlight_row.bind(rcmail.message_list);
+        rcmail.message_list.highlight_row = function (...args) {
+            if (args[1]) {
+                $(rcmail.message_list.tbody).addClass('multiselect');
+            } else {
+                $(rcmail.message_list.tbody).removeClass('multiselect');
             }
+            _hrow(...args);
         }
+    }
 });

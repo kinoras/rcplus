@@ -1,18 +1,22 @@
 {
-    "name": "radialapps/banner-warn",
+    "name": "kinoras/rcplus",
     "type": "roundcube-plugin",
     "description": "Show avatars in roundcube message list with warnings",
     "license": "MIT",
     "version": "1.2.8",
     "authors": [
         {
-            "name": "Varun Patil",
-            "email": "radialapps@gmail.com",
+            "name": "kinoRAS",
+            "email": "kinoras.macau@gmail.com",
             "role": "Lead"
         }
     ],
     "require": {
         "roundcube/plugin-installer": ">=0.1.6"
+    },
+    "config": {
+        "allow-plugins": {
+            "roundcube/plugin-installer": true
+        }
     }
 }
-
