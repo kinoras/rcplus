@@ -9,30 +9,19 @@ var rcplus = {
         if (!rcmail.env.banner_avatar || !rcmail.env.banner_avatar[evt.uid])
             return;
 
-        // Get object
-        const obj = rcmail.env.banner_avatar[evt.uid];
-
-        // Border for warning the user
-        const warn = obj.warn ? 'warn ' : '';
-        const calert = obj.alert ? 'alert ' : '';
-
-        // Get image avatar
-        const showImages = rcmail.env.banner_showAvatar;
-        const image = (warn || calert || !showImages) ? '' : './?_task=addressbook&_action=photo&_email=' + obj.from + '&_source=0';
+        const { type, text, color, image } = rcmail.env.banner_avatar[evt.uid];
 
         // Add column of avatar
         $('td.subject', evt.row.obj).before(
-            $('<td/>', { class: 'banner-warn' }).append(
-                $('<div />', { class: 'avatar ' + warn + calert }).append(
-                    $('<img />', { src: image, alt: '' }).on('error', function () {
-                        $(this).replaceWith($('<span />').html(obj.name));
-                    }).on('load', function () {
-                        $(this).css('visibility', 'visible');
-                    }).css('visibility', 'hidden')
-                ).append(
-                    $('<span />', { class: 'tick' }).html('&#10003;')
-                ).css('color', '#' + obj.color)
-            ).on('mousedown', function (event) {
+            $('<td />', { class: 'banner-warn' }).append(`
+                <div class="avatar" style="color: ${color}">
+                    <div>
+                        <img src="${image}" alt="">
+                        <span>${text}</span>
+                    </div>
+                    <span class="tick">&#10003;</span>
+                </div>
+            `).on('mousedown', function (event) {
                 rcmail.message_list.select_row(evt.uid, CONTROL_KEY, true);
                 event.stopPropagation();
             }).on('touchstart', function (event) {

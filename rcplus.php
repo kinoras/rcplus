@@ -102,8 +102,9 @@ class rcplus extends rcube_plugin
                 // Get avatar
                 $avatar = $this->getAvatar($from, $spam);
 
-                $banner_avatar[$message->uid]['name'] = $avatar['text'] ?? '';
                 $banner_avatar[$message->uid]['from'] = $from['mailto'] ?? '';
+                $banner_avatar[$message->uid]['type'] = $avatar['type'] ?? 'normal';
+                $banner_avatar[$message->uid]['text'] = $avatar['text'] ?? '';
                 $banner_avatar[$message->uid]['color'] = $avatar['color'] ?? '';
                 $banner_avatar[$message->uid]['image'] = $avatar['image'] ?? '';
             }
@@ -149,62 +150,36 @@ class rcplus extends rcube_plugin
     {
         // Case 1: Spam mail
         if ($spam)
-            return ["color" => "#ff5552", "text" => "!", "class" => "warning"];
+            return ['color' => '#ff5552', 'text' => '!', 'type' => 'textonly'];
 
         // Case 2: Unknown user
         if (!isset($from))
-            return ["color" => "#adb5bd", "text" => "?"];
+            return ['color' => '#adb5bd', 'text' => '?', 'type' => 'textonly'];
 
-        // Get sender's info & gravatar
+        $attrs = array();
+
+        // Get sender's info
         $name = $from['name'];
         $mailto = $from['mailto'];
-        $image = $this->getAvatarImage($mailto);
+        $hash = hash('sha256', strtolower(trim($mailto)));
 
-        // Case 3: User with gravatar
-        if ($image)
-            return ["image" => $image];
+        // Set avatar
+        $attrs['image'] = 'https://gravatar.com/avatar/' . $hash . '?s=96&d=blank';
 
-        // Get first letter of name
+        // Set name
         $name = empty($from['name']) ? $from['mailto'] : $from['name'];
         $name = preg_replace('/[^A-Za-z0-9 ]/', '', $name);
-        $name = strtoupper($name[0]);
+        $attrs['text'] = strtoupper($name[0]);
 
-        // Generate colour based on email address
-        $color = $this->getAvatarColor($mailto);
+        // Set background color
+        $color = substr(md5($mailto), 0, 6);
+        list($r, $g, $b) = sscanf($color, '%02x%02x%02x');
+        $r = max(0, min(255, round($r * 0.8)));
+        $g = max(0, min(255, round($g * 0.8)));
+        $b = max(0, min(255, round($b * 0.8)));
+        $attrs['color'] = sprintf('#%02x%02x%02x', $r, $g, $b);
 
-        /* Case 4: Use a letter for the user */
-        return ["color" => $color, "text" => $name];
-    }
-
-    private function getAvatarImage($address): mixed
-    {
-        // Generate Gravatar image URL
-        $hash = hash('sha256', strtolower(trim($address)));
-        $image = 'https://gravatar.com/avatar/' . $hash;
-
-        // Test if Gravatar image exists
-        $headers = get_headers($image, 1);
-        $status_line = $headers[0];
-        preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
-
-        return ((int)$match[1] === 200) ? $image : null;
-    }
-
-    private function getAvatarColor($address, $factor = 20): string
-    {
-        // Original colour
-        $color = substr(md5($address), 0, 6);
-
-        // Get factors
-        list($r, $g, $b) = sscanf($color, "%02x%02x%02x");
-        $factor = (100 - $factor) / 100;
-
-        // Darken each color component
-        $r = max(0, min(255, round($r * $factor)));
-        $g = max(0, min(255, round($g * $factor)));
-        $b = max(0, min(255, round($b * $factor)));
-
-        // Convert back to hex
-        return sprintf("#%02x%02x%02x", $r, $g, $b);
+        /* Case 3: Normal user */
+        return $attrs;
     }
 }

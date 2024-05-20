@@ -1,28 +1,31 @@
-/* Disable Selection in Select which will break the ui */
 a#list-toggle-button.selection {
     display: none;
 }
 
-/* Cell */
 td.banner-warn {
     margin: 0px;
     vertical-align: middle !important;
     padding: 0 !important;
 }
+
 .widescreen td.banner-warn,
 .listing td.banner-warn {
-    width: 42px;
-    padding-left: 7px !important;
+    width: 48px;
+    flex-shrink: 0;
+    padding-left: 8px !important;
     padding-right: 0px !important;
 }
 
-/* Header (only for list/desktop on classic/larry) */
+.widescreen td.subject,
+.listing td.subject {
+    padding-left: 4px !important;
+}
+
 th.banner-warn {
     width: 20px;
     padding: 0 !important;
 }
 
-/* Avatar box */
 .banner-warn .avatar {
     border-radius: 50%;
     text-align: center;
@@ -36,82 +39,71 @@ th.banner-warn {
     transition: all 400ms ease-out;
     cursor: pointer;
     user-select: none;
-    width: 20px; height: 20px;
+    width: 20px;
+    height: 20px;
     line-height: 20px;
 }
+
 .widescreen .banner-warn .avatar,
 .listing .banner-warn .avatar {
-    width: 32px; height: 32px;
-    line-height: 32px;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
 }
 
-/* Avatar text or image */
-.banner-warn .avatar > * {
+.banner-warn .avatar > *,
+.banner-warn .avatar > * > * {
     color: white;
     transition: opacity 300ms ease-out;
 }
-.banner-warn .avatar > img {
-    vertical-align: top !important;
-    object-fit: cover;
-    max-height: 100%;
-    max-width: 100%;
-    margin: auto;
-    border-radius: inherit;
+
+.banner-warn .avatar div {
+    width: 100%;
+    height: 100%;
+    position: relative;
 }
 
-/* Selection tick */
+.banner-warn .avatar div img {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    border-radius: 50%;
+}
+
+.banner-warn .avatar div span {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    inset: 0;
+}
+
 .tick {
     display: block;
     opacity: 0;
     transform: rotateY(180deg) translateX(50%);
-    top: 0; left: 50%;
+    top: 0;
+    left: 50%;
     position: absolute;
 }
+
 .multiselect .selected .banner-warn .avatar {
     color: #1565c0 !important;
     transform: rotateY(180deg);
 }
+
 .multiselect .selected.flagged .banner-warn .avatar {
     color: #ff5552 !important;
 }
+
 .multiselect .selected .banner-warn .avatar > * {
     opacity: 0;
 }
+
 .multiselect .selected .banner-warn .avatar > .tick {
     opacity: 1;
 }
-
-/* Hexagon (widescreen) or square for outsite */
-.banner-warn .avatar.warn {
-    border-radius: 0;
-}
-.widescreen .banner-warn .avatar.warn,
-.listing .banner-warn .avatar.warn {
-    height: 18.48px;
-    line-height: 18.48px;
-}
-.widescreen .banner-warn .avatar.warn:before, .widescreen .banner-warn .avatar.warn:after,
-.listing .banner-warn .avatar.warn:before, .listing .banner-warn .avatar.warn:after {
-    content: "";
-    position: absolute;
-    width: 0;
-    left: 0;
-    border-left: 16px solid transparent;
-    border-right: 16px solid transparent;
-}
-.widescreen .banner-warn .avatar.warn:before,
-.listing .banner-warn .avatar.warn:before {
-    bottom: 100%;
-    border-bottom: 9.24px solid currentColor;
-}
-.widescreen .banner-warn .avatar.warn:after,
-.listing .banner-warn .avatar.warn:after {
-    top: 100%;
-    border-top: 9.24px solid currentColor;
-}
-
-/* Square for spam/spf fail */
-.banner-warn .avatar.alert {
-    border-radius: 0;
-}
-
