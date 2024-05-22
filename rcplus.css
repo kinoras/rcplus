@@ -32,8 +32,7 @@ th.banner-warn {
     vertical-align: middle;
     font-size: 1.2em;
     padding: 0;
-    margin: 30% auto;
-    box-sizing: border-box;
+    margin: 8px auto;
     background: currentColor;
     position: relative;
     transition: all 400ms ease-out;

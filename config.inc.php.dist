@@ -10,14 +10,11 @@ $config['rcp_showAvatar'] = true;
 // The following regex matches [anyone]@kinoras.me
 $config['rcp_mailRegex'] = "/@(.*\.|)kinoras\.me/i";
 
-// Header that marks the message as SPAM. ('Yes').
-$config['x_spam_status_header'] = 'x-spam-status';
+// Header for spam mails
+$config['rcp_spamStatusHeader'] = 'X-RCP-Spam-Status';
+$config['rcp_spamReasonHeader'] = 'X-RCP-Spam-Reason';
+$config['rcp_spamDescriptionHeader'] = 'X-RCP-Spam-Description';
+$config['rcp_spamHashHeader'] = 'X-RCP-Spam-Hash';
 
-// Header to check spam level. Counts number of asterisk in this.
-$config['x_spam_level_header'] = 'x-spam-level';
-
-// Spam threshold for X-Spam-Level to alert user for
-$config['spam_level_threshold'] = 4;
-
-// Header that marks the message as SPF fail. ('Pass' to pass).
-$config['received_spf_header'] = 'received-spf';
+// Header of SPF staus
+$config['rcp_spfHeader'] = 'Received-SPF';
