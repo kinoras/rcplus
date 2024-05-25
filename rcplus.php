@@ -18,7 +18,10 @@ class rcplus extends rcube_plugin
     private $spamStatusHeader;
     private $spamReasonHeader;
     private $spamDescriptionHeader;
-    private $spamHashHeader;
+    private $virusStatusHeader;
+    private $virusDescriptionHeader;
+    private $hashHeader;
+    private $salt;
     private $spfHeader;
 
     function init()
@@ -42,7 +45,10 @@ class rcplus extends rcube_plugin
         $this->spamStatusHeader = $RCMAIL->config->get('rcp_spamStatusHeader');
         $this->spamReasonHeader = $RCMAIL->config->get('rcp_spamReasonHeader');
         $this->spamDescriptionHeader = $RCMAIL->config->get('rcp_spamDescriptionHeader');
-        $this->spamHashHeader = $RCMAIL->config->get('rcp_spamHashHeader');
+        $this->virusStatusHeader = $RCMAIL->config->get('rcp_virusStatusHeader');
+        $this->virusDescriptionHeader = $RCMAIL->config->get('rcp_virusDescriptionHeader');
+        $this->hashHeader = $RCMAIL->config->get('rcp_hashHeader');
+        $this->salt = $RCMAIL->config->get('rcp_salt');
         $this->spfHeader = $RCMAIL->config->get('rcp_spfHeader');
     }
 
@@ -52,7 +58,9 @@ class rcplus extends rcube_plugin
             . ' ' . $this->spamStatusHeader
             . ' ' . $this->spamReasonHeader
             . ' ' . $this->spamDescriptionHeader
-            . ' ' . $this->spamHashHeader
+            . ' ' . $this->virusStatusHeader
+            . ' ' . $this->virusDescriptionHeader
+            . ' ' . $this->hashHeader
             . ' ' . $this->spfHeader);
         return $args;
     }
@@ -75,14 +83,23 @@ class rcplus extends rcube_plugin
         // Check Received-SPF
         if ($this->isSpfPass($message->headers)) {
             array_push($content, '
-                <div class="notice warning">
-                    <b>SPF Check Not Passed</b><br>
+                <div class="notice warning"><div class="content">
+                    <b>SPF Check Not Passed</b>
                     <span>This email did not pass the SPF check, indicating possible spoofing. Avoid clicking links or replying with personal information.</span>
-                </div>
+                </div></div>
             ');
         }
 
-        array_push($content, $this->getSpamMessage($message->headers));
+        $status = $this->getWarningStatus($message->headers);
+        if ($status !== -2) {
+            $message = $this->getWarningMessage($status, $message->headers);
+            $element = "<div class='notice $message[0]'><div class='content'>";
+            $element = "<span class='rcp-notice-title'>$message[1]</span>";
+            $element = "<span class='rcp-notice-content'>$message[2]</span>";
+            if (isset($message[3])) $element .= "<span class='rcp-notice-remarks'>$message[3]</span>";
+            $element .= "</div></div>";
+            array_push($content, $element);
+        }
 
         return array('content' => $content);
     }
@@ -103,14 +120,13 @@ class rcplus extends rcube_plugin
 
                 // Parse address and check spam
                 $from = rcube_mime::decode_address_list($message->from, 1, true, null, false)[1] ?? null;
-                $spam = $this->getSpamStatus($message) >= 1 || $this->isSpfPass($message);
-                $unknown = $this->getSpamStatus($message) === -1;
+                $spam = $this->getWarningStatus($message) !== 1 || $this->isSpfPass($message);
 
                 // Get avatar
-                $avatar = $this->getAvatar($from, $spam, $unknown);
+                $avatar = $this->getAvatar($from, $spam);
 
                 $banner_avatar[$message->uid]['from'] = $from['mailto'] ?? '';
-                $banner_avatar[$message->uid]['type'] = $avatar['type'] ?? 'normal';
+                $banner_avatar[$message->uid]['bold'] = $avatar['bold'] ?? false;
                 $banner_avatar[$message->uid]['text'] = $avatar['text'] ?? '';
                 $banner_avatar[$message->uid]['color'] = $avatar['color'] ?? '';
                 $banner_avatar[$message->uid]['image'] = $avatar['image'] ?? '';
@@ -144,15 +160,25 @@ class rcplus extends rcube_plugin
         return (isset($spfStatus) && (strpos(strtolower($spfStatus), 'pass') !== 0));
     }
 
-    private function getAvatar($from, $spam = false, $unknown = true): array
+    /**
+     * Get avatar of a user
+     * @param mixed $from 
+     * @param bool $spam 
+     * @return array 
+     *  - `color` (string): Background colour of the avatar (when no gravatar profile)
+     *  - `text` (string): The letter in the middle of the avatar (when no gravatar profile)
+     *  - `image` (string): The gravatar url of the user (transparent image when no gravatar profile)
+     *  - `bold` (bool): Whether the letter in the middle should be bold (error) (false by default)
+     */
+    private function getAvatar($from, $spam = false): array
     {
         // Case 1: Spam mail
         if ($spam)
-            return ['color' => '#ff5552', 'text' => '!', 'image' => 'https://gravatar.com/avatar/?s=96&d=blank'];
+            return ['color' => '#ff5552', 'text' => '!', 'image' => 'https://gravatar.com/avatar/?s=96&d=blank', 'bold' => true];
 
         // Case 2: Unknown user
-        if (!isset($from) || $unknown)
-            return ['color' => '#adb5bd', 'text' => '?', 'image' => 'https://gravatar.com/avatar/?s=96&d=blank'];
+        if (!isset($from))
+            return ['color' => '#adb5bd', 'text' => '?', 'image' => 'https://gravatar.com/avatar/?s=96&d=blank', 'bold' => true];
 
         $attrs = array();
 
@@ -181,49 +207,70 @@ class rcplus extends rcube_plugin
         return $attrs;
     }
 
-    private function getSpamStatus($headers): int
+    /**
+     * Get warning status of an email
+     * @param mixed $headers 
+     * @param bool $checksum Whether to check data integrity (affect performance)
+     * @return int One of the following status codes:
+     *  - -2: Neutral (cannot evaluate, show no message)
+     *  - -1: Error (error occured, show notice)
+     *  -  0: Pass (show OK message)
+     *  -  1: Failed (show warning)
+     *  -  2: Failed (report modified) (show warning)
+     */
+    private function getWarningStatus($headers, $checksum = false): int
     {
-        $status = $this->first($headers->others[strtolower($this->spamStatusHeader)]);
-        $reason = $this->first($headers->others[strtolower($this->spamReasonHeader)]) ?? '';
-        $description = $this->first($headers->others[strtolower($this->spamDescriptionHeader)]) ?? '';
-        $hash = $this->first($headers->others[strtolower($this->spamHashHeader)]) ?? '';
-        $salt = "iy9Rd@CG!MemBt";
-
-        if (!isset($status) || hash('sha256', $status . $reason . $description . $salt) !== $hash) return 10;
-        if ($status === 'Probable') return 2;
-        if ($status === 'Potential') return 1;
-        if ($status === 'Unlikely') return 0;
-        return -1;
+        $spam = $this->first($headers->others[strtolower($this->spamStatusHeader)]);
+        $virus = $this->first($headers->others[strtolower($this->virusStatusHeader)]);
+        if ($checksum) {
+            $spamReason = $this->first($headers->others[strtolower($this->spamReasonHeader)]) ?? '';
+            $spamDescription = $this->first($headers->others[strtolower($this->spamDescriptionHeader)]) ?? '';
+            $virusDescription = $this->first($headers->others[strtolower($this->virusDescriptionHeader)]) ?? '';
+            $hash = $this->first($headers->others[strtolower($this->hashHeader)]) ?? '';
+            $salt = "iy9Rd@CG!MemBt";
+            if (!isset($spam) || !isset($virus) || !isset($spamReason) || !isset($spamDescription) || !isset($virusDescription) || !isset($hash)) return -2;
+            if (hash('sha256', $spam . $spamReason . $spamDescription . $virus . $virusDescription . $salt) !== $hash) return 2;
+        }
+        if ((isset($spam) && $spam === 'Probable' || $spam === 'Potential') || (isset($virus) && $virus === 'Failed')) return 1;
+        if (!isset($spam) || !isset($virus) || $spam === 'Error' || $virus === 'Error') return -1;
+        return 0;
     }
 
-    private function getSpamMessage($headers): string
+    /**
+     * Get strings for warning box
+     * @param mixed $status Return value of `getWarningStatus`
+     * @param mixed $headers 
+     * @return array
+     *  - [0]: Type of message box
+     *  - [1]: Spam information title
+     *  - [2]: Spam information description
+     *  - [3]: Virus information description
+     */
+    private function getWarningMessage($status, $headers): array
     {
-        $status = $this->getSpamStatus($headers);
-        $reason = $this->first($headers->others[strtolower($this->spamReasonHeader)]) ?? '';
-        $description = $this->first($headers->others[strtolower($this->spamDescriptionHeader)]) ?? '';
-        switch ($status) {
-            case -1:
-                return '
-                    <div class="notice information">
-                        <b>Unable to Scan</b><br>
-                        <span>We\'re currently to check this email for spam due to an error. Please be cautious and avoid clicking on any suspicious links.</span>
-                    </div>
-                ';
-            case 0:
-                return '<div class="notice confirmation"><b>Unlikely Spam: ' . $reason . '</b><br><span>' . $description . '</span></div>';
-            case 1:
-                return '<div class="notice error"><b>Potential Spam: ' . $reason . '</b><br><span>' . $description . '</span></div>';
-            case 2:
-                return '<div class="notice error"><b>Probable Spam: ' . $reason . '</b><br><span>' . $description . '</span></div>';
-            default:
-                return '
-                    <div class="notice error">
-                        <b>Modified Scan Result</b><br>
-                        <span>The spam scan result for this email has been altered. Please review with care and avoid clicking on any suspicious links.</span>
-                    </div>
-                ';
-        }
+        if ($status === -2)
+            return ["", "", ""];
+
+        if ($status === 2)
+            return ["error", "Modified Scan Result", "The spam scan result for this email has been altered. Please review with care and avoid clicking on any suspicious links."];
+
+        $spamStatus = $this->first($headers->others[strtolower($this->spamStatusHeader)]) ?? '';
+        $spamReason = $this->first($headers->others[strtolower($this->spamReasonHeader)]) ?? '';
+        $spamDescription = $this->first($headers->others[strtolower($this->spamDescriptionHeader)]) ?? '';
+        $virusStatus = $this->first($headers->others[strtolower($this->virusStatusHeader)]);
+        $virusDescription = $this->first($headers->others[strtolower($this->virusDescriptionHeader)]) ?? '';
+
+        if ($spamStatus === "Error" && $virusStatus === "Error")
+            return ["information", "Unable to Inspect This Email", "We're currently to check this email for spam or virus due to an error. Please be cautious and avoid clicking on any suspicious links or attachments."];
+
+        $type = ($status === -1) ? "information" : (($status === 0) ? "confirmation" : "error");
+
+        $spamTitle = ($spamStatus !== "Error") ? "$spamStatus Spam: $spamReason" : "Unable to Scan for Spam";
+        $spamText = ($spamStatus !== "Error") ? $spamDescription : "We're currently to check this email for spam due to an error. Please be cautious and avoid clicking on any suspicious links.";
+        if (!isset($virusStatus))
+            return [$type, $spamTitle, $spamText];
+
+        $virusText = ($virusStatus !== "Error") ? $virusDescription : "We're currently to check this email for spam due to an error. Please be cautious and avoid clicking on any suspicious links.";
+        return [$type, $spamTitle, $spamText, $virusText];
     }
 }
-
-// 

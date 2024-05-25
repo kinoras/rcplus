@@ -2,14 +2,14 @@ a#list-toggle-button.selection {
     display: none;
 }
 
-td.banner-warn {
+td.rc-avatar {
     margin: 0px;
     vertical-align: middle !important;
     padding: 0 !important;
 }
 
-.widescreen td.banner-warn,
-.listing td.banner-warn {
+.widescreen td.rc-avatar,
+.listing td.rc-avatar {
     width: 48px;
     flex-shrink: 0;
     padding-left: 8px !important;
@@ -21,16 +21,16 @@ td.banner-warn {
     padding-left: 4px !important;
 }
 
-th.banner-warn {
+th.rc-avatar {
     width: 20px;
     padding: 0 !important;
 }
 
-.banner-warn .avatar {
+.rc-avatar .avatar {
     border-radius: 50%;
     text-align: center;
     vertical-align: middle;
-    font-size: 1.2em;
+    font-size: 1.3em;
     padding: 0;
     margin: 8px auto;
     background: currentColor;
@@ -43,26 +43,31 @@ th.banner-warn {
     line-height: 20px;
 }
 
-.widescreen .banner-warn .avatar,
-.listing .banner-warn .avatar {
+.rc-avatar .avatar.bold-text {
+    font-weight: bold;
+    font-size: 1.5em;
+}
+
+.widescreen .rc-avatar .avatar,
+.listing .rc-avatar .avatar {
     width: 36px;
     height: 36px;
     line-height: 36px;
 }
 
-.banner-warn .avatar > *,
-.banner-warn .avatar > * > * {
+.rc-avatar .avatar > *,
+.rc-avatar .avatar > * > * {
     color: white;
     transition: opacity 300ms ease-out;
 }
 
-.banner-warn .avatar div {
+.rc-avatar .avatar div {
     width: 100%;
     height: 100%;
     position: relative;
 }
 
-.banner-warn .avatar div img {
+.rc-avatar .avatar div img {
     height: 100%;
     width: 100%;
     position: absolute;
@@ -71,7 +76,7 @@ th.banner-warn {
     border-radius: 50%;
 }
 
-.banner-warn .avatar div span {
+.rc-avatar .avatar div span {
     height: 100%;
     width: 100%;
     display: flex;
@@ -90,19 +95,43 @@ th.banner-warn {
     position: absolute;
 }
 
-.multiselect .selected .banner-warn .avatar {
+.multiselect .selected .rc-avatar .avatar {
     color: #1565c0 !important;
     transform: rotateY(180deg);
 }
 
-.multiselect .selected.flagged .banner-warn .avatar {
+.multiselect .selected.flagged .rc-avatar .avatar {
     color: #ff5552 !important;
 }
 
-.multiselect .selected .banner-warn .avatar > * {
+.multiselect .selected .rc-avatar .avatar > * {
     opacity: 0;
 }
 
-.multiselect .selected .banner-warn .avatar > .tick {
+.multiselect .selected .rc-avatar .avatar > .tick {
     opacity: 1;
+}
+
+#message-objects div.ui.alert {
+    border-radius: 12px !important;
+}
+
+.rcp-notice-title {
+    font-weight: 700;
+}
+
+.rcp-notice-content {
+    display: block;
+    margin-top: 1px;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.rcp-notice-remarks {
+    display: block;
+    margin-top: 1px;
+    border-top: 1px solid rgba(0, 0, 0, 0.85);
+    padding-top: 1px;
+    font-size: 13px;
+    line-height: 1.45;
 }

@@ -14,7 +14,13 @@ $config['rcp_mailRegex'] = "/@(.*\.|)kinoras\.me/i";
 $config['rcp_spamStatusHeader'] = 'X-RCP-Spam-Status';
 $config['rcp_spamReasonHeader'] = 'X-RCP-Spam-Reason';
 $config['rcp_spamDescriptionHeader'] = 'X-RCP-Spam-Description';
-$config['rcp_spamHashHeader'] = 'X-RCP-Spam-Hash';
+
+// Header for virus attachments
+$config['rcp_virusStatusHeader'] = 'X-RCP-Virus-Status';
+$config['rcp_virusDescriptionHeader'] = 'X-RCP-Virus-Description';
 
 // Header of SPF staus
 $config['rcp_spfHeader'] = 'Received-SPF';
+
+$config['rcp_hashHeader'] = 'X-RCP-Spam-Hash';
+$config['rcp_salt'] = 'iy9Rd@CG!MemBt';

@@ -9,12 +9,12 @@ var rcplus = {
         if (!rcmail.env.banner_avatar || !rcmail.env.banner_avatar[evt.uid])
             return;
 
-        const { type, text, color, image } = rcmail.env.banner_avatar[evt.uid];
+        const { bold, text, color, image } = rcmail.env.banner_avatar[evt.uid];
 
         // Add column of avatar
         $('td.subject', evt.row.obj).before(
-            $('<td />', { class: 'banner-warn' }).append(`
-                <div class="avatar" style="color: ${color}">
+            $('<td />', { class: 'rc-avatar' }).append(`
+                <div class="avatar ${bold ? 'bold-text' : ''}" style="color: ${color}">
                     <div>
                         <img src="${image}" alt="">
                         <span>${text}</span>
@@ -30,9 +30,9 @@ var rcplus = {
         );
 
         // Add column of avatar if does not exit
-        if ($('th.banner-warn').length === 0 && $('th.subject').length > 0) {
+        if ($('th.rc-avatar').length === 0 && $('th.subject').length > 0) {
             $('th.subject').before(
-                $('<th/>', { class: 'banner-warn' })
+                $('<th/>', { class: 'rc-avatar' })
             );
         }
     }
