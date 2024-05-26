@@ -90,7 +90,7 @@ class rcplus extends rcube_plugin
             ');
         }
 
-        $status = $this->getWarningStatus($message->headers);
+        $status = $this->getWarningStatus($message->headers, true);
         if ($status !== -2) {
             $message = $this->getWarningMessage($status, $message->headers);
             $element = "<div class='notice $message[0]'><div class='content'>";
