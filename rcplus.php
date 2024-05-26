@@ -120,7 +120,7 @@ class rcplus extends rcube_plugin
 
                 // Parse address and check spam
                 $from = rcube_mime::decode_address_list($message->from, 1, true, null, false)[1] ?? null;
-                $spam = $this->getWarningStatus($message) !== 1 || $this->isSpfPass($message);
+                $spam = $this->getWarningStatus($message) >= 1 || $this->isSpfPass($message);
 
                 // Get avatar
                 $avatar = $this->getAvatar($from, $spam);
