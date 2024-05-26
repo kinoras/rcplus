@@ -22,5 +22,5 @@ $config['rcp_virusDescriptionHeader'] = 'X-RCP-Virus-Description';
 // Header of SPF staus
 $config['rcp_spfHeader'] = 'Received-SPF';
 
-$config['rcp_hashHeader'] = 'X-RCP-Spam-Hash';
+$config['rcp_hashHeader'] = 'X-RCP-Hash';
 $config['rcp_salt'] = 'iy9Rd@CG!MemBt';
