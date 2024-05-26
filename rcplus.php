@@ -94,8 +94,8 @@ class rcplus extends rcube_plugin
         if ($status !== -2) {
             $message = $this->getWarningMessage($status, $message->headers);
             $element = "<div class='notice $message[0]'><div class='content'>";
-            $element = "<span class='rcp-notice-title'>$message[1]</span>";
-            $element = "<span class='rcp-notice-content'>$message[2]</span>";
+            $element .= "<span class='rcp-notice-title'>$message[1]</span>";
+            $element .= "<span class='rcp-notice-content'>$message[2]</span>";
             if (isset($message[3])) $element .= "<span class='rcp-notice-remarks'>$message[3]</span>";
             $element .= "</div></div>";
             array_push($content, $element);
@@ -267,7 +267,7 @@ class rcplus extends rcube_plugin
 
         $spamTitle = ($spamStatus !== "Error") ? "$spamStatus Spam: $spamReason" : "Unable to Scan for Spam";
         $spamText = ($spamStatus !== "Error") ? $spamDescription : "We're currently to check this email for spam due to an error. Please be cautious and avoid clicking on any suspicious links.";
-        if (!isset($virusStatus))
+        if (!isset($virusStatus) || $virusStatus === "Skipped")
             return [$type, $spamTitle, $spamText];
 
         $virusText = ($virusStatus !== "Error") ? $virusDescription : "We're currently to check this email for spam due to an error. Please be cautious and avoid clicking on any suspicious links.";
