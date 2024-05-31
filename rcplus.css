@@ -116,6 +116,10 @@ th.rc-avatar {
     border-radius: 12px !important;
 }
 
+#message-objects div.ui.alert .content {
+    flex: 1;
+}
+
 .rcp-notice-title {
     font-weight: 700;
 }
