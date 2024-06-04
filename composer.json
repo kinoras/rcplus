@@ -1,14 +1,17 @@
 {
     "name": "kinoras/rcplus",
     "type": "roundcube-plugin",
-    "description": "Show avatars in roundcube message list with warnings",
+    "description": "Roundcube Gravatar integration & spam mail warning",
     "license": "MIT",
-    "version": "0.4.5",
+    "version": "0.5.0",
     "authors": [
         {
+            "name": "Varun Patil",
+            "email": "radialapps@gmail.com"
+        },
+        {
             "name": "kinoRAS",
-            "email": "kinoras.macau@gmail.com",
-            "role": "Lead"
+            "email": "kinoras.macau@gmail.com"
         }
     ],
     "require": {

@@ -1,43 +1,42 @@
-# Roundcube Banner Warn
+# RC+PLUS
 
-Displays avatars in roundcube message list and banner warnings under some contexts.
+Gravatar integration in Roundcube message list, and banner warnings for spam, inflected or tampered messages.
 
-## Screenshots
+## 📸 Screenshots
 
-The plugin adds avatars to the message list that display the user's contact photo or a colored first letter, and warns the user for various contexts. \
-<img src="screenshots/avatars1.png" alt="Avatars" width="800"/>
+ <img src="screenshots/inboxf.png" alt="Spam Email" width="600"/>
+ <img src="screenshots/junkf.png" alt="SPF failing Email" width="600"/>
 
-On multiselecting emails (which can be done by clicking the avatar), the avatars animate similar to the Gmail app \
-<img src="screenshots/avatars2.png" alt="Avatars" width="800"/>
+## 🚀 Features
 
-### Banner Warnings
+### Avatars
 
-Warnings are displayed similar to Outlook \
-<img src="screenshots/outlook.png" alt="Outlook" width="600"/>
+-   Display the sender's Gravatar
+-   If the sender doesn't have one, use the first letter in the name and the MD5 colour of the address.
+-   For mails in the Junk box, display an exclamation mark on a red background.
 
-**With this plugin** \
-<img src="screenshots/external.png" alt="External Email" width="600"/>
-<img src="screenshots/spam.png" alt="Spam Email" width="600"/>
-<img src="screenshots/spffail.png" alt="SPF failing Email" width="600"/>
+### Scan result banner
 
-## Types of warnings
+-   Display a green bar if the message is unlikely a spam and the attachments contain no virus.active
+-   Otherwise, display a red bar to notify users.
+-   Scaning is done by the MTA, and the report is shown above the mail body.
 
--   Email originating from outside your organization
--   Marked as spam in X-Spam-Status
--   Failing Received-SPF
+### Warning message triggers
 
-## Name of this plugin
+-   The mail is probably or potentially a spam
+-   The mail attaches files that contain virus
+-   The mail fail the [DKIM](https://www.cloudflare.com/en-gb/learning/dns/dns-records/dns-dkim-record/) check
+-   The mail is manually moved to the Junk folder by the user
 
-This plugin is named as such for historical reasons. The chief functionality currently is showing avatars beside the message list, and banner warnings are displayed for individual emails as well.
+## 🛠 Setup
 
-## Installation
-
-To install, get the plugin with composer in your roundcube directory
+To install, get the plugin with composer in your Roundcube directory
 
 ```
 composer require kinoras/rcplus
 ```
 
-## License
+## 📝 License
 
-Permissively licensed under the MIT license
+Permissively licensed under the MIT license.  
+Special thanks to [Varun Patil](https://github.com/pulsejet) for creating the foundation of this project.
