@@ -19,10 +19,7 @@ $config['rcp_spamDescriptionHeader'] = 'X-RCP-Spam-Description';
 $config['rcp_virusStatusHeader'] = 'X-RCP-Virus-Status';
 $config['rcp_virusDescriptionHeader'] = 'X-RCP-Virus-Description';
 
-// Header of SPF staus
-$config['rcp_spfHeader'] = 'Received-SPF';
-$config['rcp_spfRegex'] = "/^(Failed|Softfailed)/i";
-
+// Header of DKIM status
+$config['rcp_dkimHeader'] = 'X-RCP-DKIM-Status';
 
 $config['rcp_hashHeader'] = 'X-RCP-Hash';
-$config['rcp_salt'] = 'iy9Rd@CG!MemBt';

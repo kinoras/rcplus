@@ -21,9 +21,7 @@ class rcplus extends rcube_plugin
     private $virusStatusHeader;
     private $virusDescriptionHeader;
     private $hashHeader;
-    private $salt;
-    private $spfHeader;
-    private $spfRegex;
+    private $dkimHeader;
 
     function init()
     {
@@ -49,9 +47,7 @@ class rcplus extends rcube_plugin
         $this->virusStatusHeader = $rcmail->config->get('rcp_virusStatusHeader');
         $this->virusDescriptionHeader = $rcmail->config->get('rcp_virusDescriptionHeader');
         $this->hashHeader = $rcmail->config->get('rcp_hashHeader');
-        $this->salt = $rcmail->config->get('rcp_salt');
-        $this->spfHeader = $rcmail->config->get('rcp_spfHeader');
-        $this->spfRegex = $rcmail->config->get('rcp_spfRegex') ?? '/.+/i';
+        $this->dkimHeader = $rcmail->config->get('rcp_dkimHeader');
     }
 
     public function storageInit($args)
@@ -63,7 +59,7 @@ class rcplus extends rcube_plugin
             . ' ' . $this->virusStatusHeader
             . ' ' . $this->virusDescriptionHeader
             . ' ' . $this->hashHeader
-            . ' ' . $this->spfHeader);
+            . ' ' . $this->dkimHeader);
         return $args;
     }
 
@@ -153,11 +149,6 @@ class rcplus extends rcube_plugin
         return !preg_match($this->mailRegex, $address);
     }
 
-    private function isSpfFailed($spfStatus): bool
-    {
-        return preg_match($this->spfRegex, $spfStatus);
-    }
-
     /**
      * Get avatar of a user
      * @param mixed $profile 
@@ -215,7 +206,6 @@ class rcplus extends rcube_plugin
      *  -  0: Pass (show OK message)
      *  -  1: Failed (show warning)
      *  -  2: Failed (report modified) (show warning)
-     *  -  3: Failed (SPF not pass)
      */
     private function getWarningStatus($headers, $checksum = false): int
     {
@@ -231,6 +221,7 @@ class rcplus extends rcube_plugin
             $spamReason = $this->first($headers->others[strtolower($this->spamReasonHeader)]);
             $spamDescription = $this->first($headers->others[strtolower($this->spamDescriptionHeader)]);
             $virusDescription = $this->first($headers->others[strtolower($this->virusDescriptionHeader)]);
+            $dkim = $this->first($headers->others[strtolower($this->dkimHeader)]) ?? '';
             $hash = $this->first($headers->others[strtolower($this->hashHeader)]);
 
             // Unable to evaluate, if all fields missing
@@ -242,7 +233,7 @@ class rcplus extends rcube_plugin
                 return -2;
 
             // Return error, if hash does't match
-            if (hash('sha256', $spam . $spamReason . $spamDescription . $virus . $virusDescription . $this->salt) !== $hash)
+            if (hash('sha256', $spam . $spamReason . $spamDescription . $virus . $virusDescription . $dkim) !== $hash)
                 return 2;
         }
 
@@ -271,7 +262,7 @@ class rcplus extends rcube_plugin
     private function getWarningMessage($status, $headers): array
     {
         // Check hash in detail mode
-        $spfStatus = $this->first($headers->others[strtolower($this->spfHeader)]) ?? '';
+        $dkimStatus = $this->first($headers->others[strtolower($this->dkimHeader)]) ?? '';
         $spamStatus = $this->first($headers->others[strtolower($this->spamStatusHeader)]) ?? '';
         $spamReason = $this->first($headers->others[strtolower($this->spamReasonHeader)]) ?? '';
         $spamDescription = $this->first($headers->others[strtolower($this->spamDescriptionHeader)]) ?? '';
@@ -307,7 +298,7 @@ class rcplus extends rcube_plugin
 
             case 0:
                 // Moved from JUNK to INBOX
-                if ($spamStatus === 'Probable' || $spamStatus === 'Potential' || $virusStatus === 'Failed' || $this->isSpfFailed($spfStatus))
+                if ($spamStatus === 'Probable' || $spamStatus === 'Potential' || $virusStatus === 'Failed' || $dkimStatus === 'Failed')
                     return [
                         "confirmation",
                         "You've moved this mail into your Inbox",
@@ -331,12 +322,12 @@ class rcplus extends rcube_plugin
                         "We' improve our filters to help keep your Inbox free of unwanted messages"
                     ];
 
-                // SPF not pass
-                if ($this->isSpfFailed($spfStatus))
+                // DKIM not pass
+                if ($dkimStatus === 'Failed')
                     return [
                         "error",
-                        "SPF Not Pass: Potential Security Risk",
-                        "This email did not pass the SPF check. It may not be from the claimed sender. Avoid clicking links or replying with personal information."
+                        "DKIM Verification Failed: Exercise Caution",
+                        "This email failed DKIM verification. Exercise caution as it may not be from the stated sender. Avoid clicking on any links or disclosing personal information."
                     ];
 
                 // Real spam mails
